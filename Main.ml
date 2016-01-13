@@ -4,7 +4,6 @@
  * and get a prototype running quickly.
  *)
 
-let rt = Runtime.create ()
 let vm = VM.create ()
 
 let print_exn data =

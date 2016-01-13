@@ -5,6 +5,7 @@
 
 open Core.Std
 
+(*
 type t {
   symbol_table: (string, int) Hashtbl.t
 }
@@ -12,6 +13,7 @@ type t {
 let create () = {
   symbol_table = Hashtbl.create ();
 }
+*)
 
 let whitespace = Str.regexp "[ \t\r\n]+\\|(\\|)"
 let tokenize = Str.split_delim whitespace
