@@ -5,6 +5,7 @@
  *)
 
 let vm = VM.create ()
+let rt = Runtime.create ()
 
 let print_exn data =
   Format.printf "EXCEPTION: %s\n%s\n"
@@ -16,7 +17,7 @@ let rec repl () =
   begin
   try
     read_line ()
-    |> Runtime.parse (VM.lookup vm)
+    |> Runtime.compile_to_ir rt
     |> VM.eval vm
     |> print_endline
   with

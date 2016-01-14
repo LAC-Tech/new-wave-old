@@ -1,5 +1,8 @@
 open Core.Std
 
+(* TODO: these should be runtime errors. Unexpected Instructions and Nested
+ * defintions should be caught by the type checker.
+ *)
 type vm_error = NestedDefinition | StackUnderflow | UnexpectedInstruction
 
 let string_of_vm_error = function
@@ -29,49 +32,27 @@ type data = Int32.t
 
 type t = {    
   mutable state: state;
-  mutable new_id: string;
+  mutable mar: int; (* "memory address register" *)
   new_def: IR.t Dequeue.t;
-  memory: (string, IR.t array) Hashtbl.t;
+  memory: (IR.t array) Dequeue.t;
   stack: data Dequeue.t;
 }
 
 let create () = {
   state   = Executing; (* can this start in defining??? *)
-  new_id  = "";
+  mar     = -1;
   new_def = Dequeue.create ();
-  memory  = String.Table.create ();
-  stack   = Dequeue.create ();
+  memory  = Dequeue.create ~initial_length:128 ();
+  stack   = Dequeue.create ~initial_length:32 ()
 }
 
-let primitives = String.Map.of_alist_exn
-  [";",     IR.DefEnd;
-   "drop",  IR.Drop;
-   "dup",   IR.Dup;
-   "swap",  IR.Swap;
-   "rot",   IR.Rot;
-   "~",     IR.Neg;
-   "+",     IR.Add;
-   "-",     IR.Sub;
-   "*",     IR.Mul;
-   "/",     IR.Div;
-   "if",    IR.If;
-   ">",     IR.Gt;
-   "<",     IR.Lt;
-   "=",     IR.Eq]
-
-let lookup_memory vm id =  
-  Hashtbl.find vm.memory id 
-  |> Option.map ~f: (fun os -> IR.Call(os))
- 
-let lookup vm id = 
-  [Map.find primitives; lookup_memory vm]
-  |> List.find_map ~f:(fun f -> f id)
-
-let def_bgn vm id = vm.new_id <- id  
+(*
+ * Memory
+ *)
 
 let def_end vm = 
   let def = (Dequeue.to_array vm.new_def) in
-  Hashtbl.add_exn vm.memory ~key:vm.new_id ~data:def;
+  Dequeue.enqueue_back vm.memory def;
   Dequeue.clear vm.new_def
 
 let compile vm = Dequeue.enqueue_back vm.new_def
@@ -157,13 +138,13 @@ let string_of_stack vm =
 
 let rec eval_exec vm = function
   (* Memory *)
-  | IR.DefBgn(id) -> 
-      def_bgn vm id; 
-      vm.state <- Defining
-  | IR.DefEnd   -> raise (Internal_exn UnexpectedInstruction)
-  | IR.Call(is) -> Array.iter is ~f:(eval_exec vm)
+  | IR.DefBgn(addr) ->
+      vm.mar    <- addr;
+      vm.state  <- Defining
+  | IR.DefEnd     -> raise (Internal_exn UnexpectedInstruction)
+  | IR.Call(addr) -> Dequeue.get vm.memory addr |> Array.iter ~f:(eval_exec vm)
 
-  (* Stack *)
+  (* Stack *) 
   | IR.Push(data) -> push vm data
   | IR.Drop       -> drop vm
   | IR.Dup        -> dup  vm
@@ -215,6 +196,8 @@ let string_of_new_def vm =
   |> String.concat ~sep:" "
 
 let debug vm = 
-  Format.sprintf   
-  "state = %s\nnew_def = %s\nnew_id = %s\nstack = %s"
-  (string_of_state vm) (string_of_new_def vm) (vm.new_id) (string_of_stack vm)
+  Format.sprintf "state = %s\nnew_def = %s\nmar = %s\nstack = %s"
+  (string_of_state vm) 
+  (string_of_new_def vm) 
+  (string_of_int vm.mar) 
+  (string_of_stack vm)
