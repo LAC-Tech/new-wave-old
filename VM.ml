@@ -30,7 +30,7 @@ exception Exn of exn_data
 type state = Executing | Defining
 type data = Int32.t
 
-type t = {    
+type t = {
   mutable state: state;
   mutable mar: int; (* "memory address register" *)
   new_def: IR.t Dequeue.t;
@@ -63,36 +63,36 @@ let compile vm = Dequeue.enqueue_back vm.new_def
 
 let pop vm = match Dequeue.dequeue_back vm.stack with
   | Some data -> data
-  | None -> raise (Internal_exn StackUnderflow)
+  | None      -> raise (Internal_exn StackUnderflow)
 
 let drop vm = ignore(pop vm)
 
 let top vm = match Dequeue.peek_back vm.stack with
   | Some data -> data
-  | None -> raise (Internal_exn StackUnderflow)
+  | None      -> raise (Internal_exn StackUnderflow)
 
 let push vm = Dequeue.enqueue_back vm.stack
 
-let dup t = let top = top t in push t top
+let dup vm = let top = top vm in push vm top
 
 let replace vm =
   let len = Dequeue.length vm.stack in
   try Dequeue.set_exn vm.stack (len - 1)
   with Failure _ -> raise (Internal_exn StackUnderflow)
 
-let swap t =
-  let a = pop t in
-  let b = pop t in
-  push t a;
-  push t b
+let swap vm =
+  let a = pop vm in
+  let b = pop vm in
+  push vm a;
+  push vm b
 
-let rot t =
-  let z = pop t in
-  let y = pop t in
-  let x = pop t in
-  push t y;
-  push t z;
-  push t x
+let rot vm =
+  let z = pop vm in
+  let y = pop vm in
+  let x = pop vm in
+  push vm y;
+  push vm z;
+  push vm x
 
 (*
  * Arithmetic operations
@@ -144,12 +144,12 @@ let rec eval_exec vm = function
   | IR.DefEnd     -> raise (Internal_exn UnexpectedInstruction)
   | IR.Call(addr) -> Dequeue.get vm.memory addr |> Array.iter ~f:(eval_exec vm)
 
-  (* Stack *) 
+  (* Stack *)
   | IR.Push(data) -> push vm data
   | IR.Drop       -> drop vm
   | IR.Dup        -> dup  vm
   | IR.Swap       -> swap vm
-  | IR.Rot        -> rot  vm  
+  | IR.Rot        -> rot  vm
 
   (* Arithmetic *)
   | IR.Neg -> neg vm
@@ -165,7 +165,6 @@ let rec eval_exec vm = function
   | IR.Eq -> eq  vm
 
 let eval_def vm = function
-  (* Memory *)
   | IR.DefBgn(_) -> raise (Internal_exn NestedDefinition)
   | IR.DefEnd ->
       def_end vm;
@@ -179,7 +178,7 @@ let eval_ir vm pos ir =
     | Defining  -> eval_def vm ir ;
   with
     | Internal_exn(err) ->
-        raise (Exn {position = pos; instruction = ir; error = err })
+        raise (Exn { position = pos; instruction = ir; error = err })
 
 let eval vm is = 
   List.iteri is ~f:(eval_ir vm);
