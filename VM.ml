@@ -1,3 +1,9 @@
+(* An untyped, high level, garbage-collected VM that executes IR.
+ *
+ * In the future, I will likely replace this module with one written in C,
+ * which is a better fit for this kind of thing.
+ *)
+
 open Core.Std
 
 (* TODO: these should be runtime errors. Unexpected Instructions and Nested
@@ -95,7 +101,7 @@ let rot vm =
   push vm x
 
 (*
- * Arithmetic operations
+ * Arithmetic
  *)
 
 let neg vm = replace vm (top vm |> Int32.neg)
@@ -111,7 +117,7 @@ let mul vm = binary_op vm Int32.( * )
 let div vm = binary_op vm Int32.( / )
 
 (*
- * Conditional operators
+ * Conditional
  *)
 
 (* cond t f -> t | f *)
@@ -125,6 +131,47 @@ let bool_binary_op vm op = binary_op vm (fun l r -> op l r |> Data.bool_to_i32)
 let gt vm = bool_binary_op vm ( > )
 let lt vm = bool_binary_op vm ( < )
 let eq vm = bool_binary_op vm ( = )
+
+(*
+ * Dynamic Array
+ *)
+
+let pop_da vm   = (Obj.magic (pop vm) : data Dequeue.t)
+let pop_int vm  = pop vm |> Int32.to_int_exn
+
+(* capacity -- da *)
+let da_new vm =
+  let capacity = pop vm |> Int32.to_int_exn in
+  push vm (Obj.magic (Dequeue.create ~initial_length:capacity ()) : data)
+ 
+(* da -- len *)
+let da_len vm =
+  let da = pop_da vm in
+  Dequeue.length da |> Int32.of_int_exn |> push vm
+
+(* da index data -- *)
+let da_set vm =
+  let data = pop vm in
+  let index = pop_int vm in
+  let da = pop_da vm in
+  Dequeue.set_exn da index data
+
+(* da index -- data *)
+let da_ref vm =
+  let index = pop vm |> Int32.to_int_exn in
+  let da = pop_da vm in
+  Dequeue.get da index |> push vm
+
+(* da data -- *)  
+let da_push vm =
+  let data = pop vm in
+  let da = pop_da vm in
+  Dequeue.enqueue_back da data
+
+(* da -- data *)  
+let da_pop vm =
+  let da = pop_da vm in
+  Dequeue.dequeue_back_exn da |> push vm
 
 (*
  * Interpret
@@ -163,6 +210,14 @@ let rec eval_exec vm = function
   | IR.Gt -> gt  vm
   | IR.Lt -> lt  vm
   | IR.Eq -> eq  vm
+
+  (* Dynamic Array *)
+  | IR.DaNew  -> da_new vm
+  | IR.DaLen  -> da_len vm
+  | IR.DaSet  -> da_set vm
+  | IR.DaRef  -> da_ref vm
+  | IR.DaPush -> da_push vm
+  | IR.DaPop  -> da_pop vm
 
 let eval_def vm = function
   | IR.DefBgn(_) -> raise (Internal_exn NestedDefinition)

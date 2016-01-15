@@ -50,11 +50,24 @@ type t =
   | Lt
   | Eq
 
+  (* Dynamic Array *)
+  (* NOTE: I am not at all convinced these are fundamental enough to be part
+   * of the IR. But ATM I need them more than I need "primitive" arrays, so
+   * they will stay in for now. They can later be replaced once I have
+   * structs/modules/objects or whatever.
+   *)
+  | DaNew
+  | DaLen
+  | DaSet
+  | DaRef
+  | DaPush
+  | DaPop
+
 let to_string = function
   (* Memory *)
-  | DefBgn(addr)  -> Printf.sprintf "DEFBGN(%d)" addr
+  | DefBgn(addr)  -> Printf.sprintf "def_bgn(%d)" addr
   | DefEnd        -> ";"
-  | Call(addr)    -> Printf.sprintf "CALL(%d)" addr
+  | Call(addr)    -> Printf.sprintf "call(%d)" addr
 
   (* Stack *)
   | Push(i32) -> Int32.to_string i32
@@ -75,3 +88,11 @@ let to_string = function
   | Gt -> ">"
   | Lt -> "<"
   | Eq -> "="
+
+  (* Dynamic Arrays *)
+  | DaNew   -> "da_new"
+  | DaLen   -> "da_len"
+  | DaSet   -> "da_set"
+  | DaRef   -> "da_ref"
+  | DaPush  -> "da_push"
+  | DaPop   -> "da_pop"

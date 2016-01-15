@@ -29,20 +29,26 @@ let read_bool = function
   | _       -> None
 
 let primitives = String.Map.of_alist_exn
-  [";",     IR.DefEnd;
-   "drop",  IR.Drop;
-   "dup",   IR.Dup;
-   "swap",  IR.Swap;
-   "rot",   IR.Rot;
-   "~",     IR.Neg;
-   "+",     IR.Add;
-   "-",     IR.Sub;
-   "*",     IR.Mul;
-   "/",     IR.Div;
-   "if",    IR.If;
-   ">",     IR.Gt;
-   "<",     IR.Lt;
-   "=",     IR.Eq]
+  [";",           IR.DefEnd;
+   "drop",          IR.Drop;
+   "dup",           IR.Dup;
+   "swap",          IR.Swap;
+   "rot",           IR.Rot;
+   "~",             IR.Neg;
+   "+",             IR.Add;
+   "-",             IR.Sub;
+   "*",             IR.Mul;
+   "/",             IR.Div;
+   "if",            IR.If;
+   ">",             IR.Gt;
+   "<",             IR.Lt;
+   "=",             IR.Eq;
+   "dynarray-new",  IR.DaNew;
+   "length",        IR.DaLen;
+   "set",           IR.DaSet;
+   "ref",           IR.DaRef;
+   "push",          IR.DaPush;
+   "pop",           IR.DaPop]
 
 let lookup rt token =
   [Map.find primitives; read_i32; read_bool; addr_of_symbol rt]
