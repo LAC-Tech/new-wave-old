@@ -18,25 +18,28 @@ entering an unbound identifier, followed by a definition, and a terminating ";"
 
 ```
 > square dup * ;
-    
 > 3 square
 9
 ```
 
 ## Shuffle the stack
 
+```
 dup     ( a -- a a )
 drop    ( a -- )
 swap    ( a b - b a )
 rot     ( a b c - b c a )
+```
 
 ## Dynamic Arrays
 
 (These are a bit useless as you can't really save an array at the moment - only save a word that defines a fresh one ...)
 
+```
 dynarray-new  ( capacity -- da )
 length        ( da -- len )
 set           ( da index data -- )
 ref           ( da index -- data )
 push          ( da data -- )
-pop           
+pop           ( da -- data )
+```
