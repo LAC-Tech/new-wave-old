@@ -240,8 +240,8 @@ let eval vm is =
   vm |> string_of_stack
   
 let string_of_state vm = match vm.state with
-  | Executing -> "Executing" 
-  | Defining -> "Defining"
+  | Executing -> "Executing"
+  | Defining  -> "Defining"
 
 let string_of_new_def vm = 
   vm.new_def
@@ -249,9 +249,9 @@ let string_of_new_def vm =
   |> List.map ~f:IR.to_string
   |> String.concat ~sep:" "
 
-let debug vm = 
+let debug vm =
   Format.sprintf "state = %s\nnew_def = %s\nmar = %s\nstack = %s"
-  (string_of_state vm) 
-  (string_of_new_def vm) 
-  (string_of_int vm.mar) 
-  (string_of_stack vm)
+    (string_of_state vm)
+    (string_of_new_def vm)
+    (string_of_int vm.mar)
+    (string_of_stack vm)
