@@ -12,6 +12,10 @@ let print_exn data =
     (VM.string_of_exn_data data)
     (VM.debug vm)
 
+let print_vm str = match str with
+  | ""  -> print_bytes str
+  | _   -> print_endline str
+
 let rec repl () =
   print_string "> ";
   begin
@@ -19,7 +23,7 @@ let rec repl () =
     read_line ()
     |> Runtime.compile_to_ir rt
     |> VM.eval vm
-    |> print_endline
+    |> print_vm
   with
     | VM.Exn(data)    -> print_exn data
     | Data.Type_error -> print_endline "type error"
