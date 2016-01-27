@@ -1,4 +1,5 @@
 open Core.Std
+open Type
 
 (* I've had many conflicting ideas on how to define the intermediate
  * representation, so I will outline my rationale, possible future plans, and
@@ -96,3 +97,37 @@ let to_string = function
   | DaRef   -> "da_ref"
   | DaPush  -> "da_push"
   | DaPop   -> "da_pop"
+
+let to_type = function
+  (* Memory *)
+  | DefBgn _  -> Special
+  | DefEnd    -> Special
+  | Call _    -> Special (* TODO: this is not right at all *)
+  
+  (* Stack *)
+  | Push _  -> Sig ([],               [Any])
+  | Drop    -> Sig ([Any],            [])
+  | Dup     -> Sig ([Any],            [Any; Any])
+  | Swap    -> Sig ([Any; Any],       [Any; Any])
+  | Rot     -> Sig ([Any; Any; Any],  [Any; Any; Any])
+  
+  (* Arithmetic *)
+  | Neg -> Sig ([I32],      [I32])
+  | Add -> Sig ([I32; I32], [I32])
+  | Sub -> Sig ([I32; I32], [I32])
+  | Mul -> Sig ([I32; I32], [I32])
+  | Div -> Sig ([I32; I32], [I32])
+
+  (* Conditional *)
+  | If  -> Sig ([I32; Any; Any],  [Any])
+  | Gt  -> Sig ([I32; I32],       [I32])
+  | Lt  -> Sig ([I32; I32],       [I32])
+  | Eq  -> Sig ([I32; I32],       [I32])
+
+  (* Dynamic Array *)
+  | DaNew   -> Sig ([I32],          [DA])
+  | DaLen   -> Sig ([DA],           [I32])
+  | DaSet   -> Sig ([DA; I32; Any], [])
+  | DaRef   -> Sig ([DA; I32],      [Any])
+  | DaPush  -> Sig ([DA; Any],      [])
+  | DaPop   -> Sig ([DA],           [Any])

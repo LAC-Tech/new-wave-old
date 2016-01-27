@@ -1,10 +1,15 @@
-open IR
 open Core.Std
 
 (* 
  * From a low level perspective the "name" of a generic type is completely
  * arbitrary - it just needs to denote a position
  *)
+
+type atom = I32 | DA | Any
+type t = Sig of atom list * atom list | Special
+
+
+(*
 type t = I32 | Generic of int
 
 let natural_to_string = Int.Map.of_alist_exn
@@ -99,7 +104,7 @@ let match_types t1 t2 = match t1, t2 with
 let runtime_compose rt1 rt2 =
   let diff = (input_arity rt2) - (output_arity rt1) in
 
-(*   Printf.printf "number of new inputs %d\n" diff; *)
+  (* Printf.printf "number of new inputs %d\n" diff; *)
 
   if diff > 0 then
     let unconsumed_inputs = List.drop rt2.inputs (output_arity rt1) in
@@ -115,3 +120,4 @@ let runtime_compose rt1 rt2 =
     }
   else
     {inputs = rt1.inputs; outputs = rt2.outputs}
+*)
