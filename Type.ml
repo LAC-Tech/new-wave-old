@@ -6,8 +6,23 @@ open Core.Std
  *)
 
 type atom = I32 | DA | Any
-type t = Sig of atom list * atom list | Special
+type signature = (atom list * atom list) option
+exception Mismatch
 
+(* TODO: actually type check and throw the Mismatch exn *)
+let compose (l_in, l_out) (r_in, r_out) =
+  let diff = (List.length r_in) - (List.length l_out) in
+
+  (* Printf.printf "number of new inputs %d\n" diff; *)
+
+  if diff > 0 then
+    let unconsumed_inputs = List.drop r_in (List.length l_out) in
+    (l_in @ unconsumed_inputs, r_out)
+  else if diff < 0 then
+    let remaining_outputs = List.take l_out (-diff) in 
+    (l_in, remaining_outputs @ r_out)
+  else
+    (l_in, r_out)
 
 (*
 type t = I32 | Generic of int
