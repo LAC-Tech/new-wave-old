@@ -100,34 +100,34 @@ let to_string = function
 
 let to_type = function
   (* Memory *)
-  | DefBgn _  -> Special
-  | DefEnd    -> Special
-  | Call _    -> Special (* TODO: this is not right at all *)
+  | DefBgn _  -> None
+  | DefEnd    -> None
+  | Call _    -> None (* TODO: this is not right at all *)
   
   (* Stack *)
-  | Push _  -> Sig ([],               [Any])
-  | Drop    -> Sig ([Any],            [])
-  | Dup     -> Sig ([Any],            [Any; Any])
-  | Swap    -> Sig ([Any; Any],       [Any; Any])
-  | Rot     -> Sig ([Any; Any; Any],  [Any; Any; Any])
+  | Push _  -> Some ([],              [Any])
+  | Drop    -> Some ([Any],           [])
+  | Dup     -> Some ([Any],           [Any; Any])
+  | Swap    -> Some ([Any; Any],      [Any; Any])
+  | Rot     -> Some ([Any; Any; Any], [Any; Any; Any])
   
   (* Arithmetic *)
-  | Neg -> Sig ([I32],      [I32])
-  | Add -> Sig ([I32; I32], [I32])
-  | Sub -> Sig ([I32; I32], [I32])
-  | Mul -> Sig ([I32; I32], [I32])
-  | Div -> Sig ([I32; I32], [I32])
+  | Neg -> Some ([I32],       [I32])
+  | Add -> Some ([I32; I32],  [I32])
+  | Sub -> Some ([I32; I32],  [I32])
+  | Mul -> Some ([I32; I32],  [I32])
+  | Div -> Some ([I32; I32],  [I32])
 
   (* Conditional *)
-  | If  -> Sig ([I32; Any; Any],  [Any])
-  | Gt  -> Sig ([I32; I32],       [I32])
-  | Lt  -> Sig ([I32; I32],       [I32])
-  | Eq  -> Sig ([I32; I32],       [I32])
+  | If  -> Some ([I32; Any; Any], [Any])
+  | Gt  -> Some ([I32; I32],      [I32])
+  | Lt  -> Some ([I32; I32],      [I32])
+  | Eq  -> Some ([I32; I32],      [I32])
 
   (* Dynamic Array *)
-  | DaNew   -> Sig ([I32],          [DA])
-  | DaLen   -> Sig ([DA],           [I32])
-  | DaSet   -> Sig ([DA; I32; Any], [])
-  | DaRef   -> Sig ([DA; I32],      [Any])
-  | DaPush  -> Sig ([DA; Any],      [])
-  | DaPop   -> Sig ([DA],           [Any])
+  | DaNew   -> Some ([I32],           [DA])
+  | DaLen   -> Some ([DA],            [I32])
+  | DaSet   -> Some ([DA; I32; Any],  [])
+  | DaRef   -> Some ([DA; I32],       [Any])
+  | DaPush  -> Some ([DA; Any],       [])
+  | DaPop   -> Some ([DA],            [Any])
