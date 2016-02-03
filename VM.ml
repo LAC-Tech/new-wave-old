@@ -24,12 +24,11 @@ type exn_data = {
   position: int;
 }
 
-let string_of_exn_data = function
-  | {instruction; position; error} ->
-      Format.sprintf "%s thrown by %s at position %s"
-        (string_of_vm_error error)
-        (IR.to_string instruction)
-        (string_of_int position)
+let string_of_exn_data ed =
+  Format.sprintf "%s thrown by %s at position %s"
+        (string_of_vm_error ed.error)
+        (IR.to_string ed.instruction)
+        (string_of_int ed.position)
 
 exception Exn of exn_data
 
@@ -67,15 +66,13 @@ let compile vm = Dequeue.enqueue_back vm.new_def
  * Stack
  *)
 
-let pop vm = match Dequeue.dequeue_back vm.stack with
+let safe_op op vm = match op vm.stack with
   | Some data -> data
   | None      -> raise (Internal_exn StackUnderflow)
 
+let top = safe_op Dequeue.peek_back
+let pop = safe_op Dequeue.dequeue_back 
 let drop vm = ignore(pop vm)
-
-let top vm = match Dequeue.peek_back vm.stack with
-  | Some data -> data
-  | None      -> raise (Internal_exn StackUnderflow)
 
 let push vm = Dequeue.enqueue_back vm.stack
 
@@ -107,8 +104,8 @@ let rot vm =
 let neg vm = replace vm (top vm |> Int32.neg)
 
 let binary_op vm op =
-  let rhs = (pop vm) in
-  let lhs = (top vm) in 
+  let rhs = pop vm in
+  let lhs = top vm in 
   replace vm (op lhs rhs)
 
 let add vm = binary_op vm Int32.( + )
@@ -126,11 +123,11 @@ let if_ vm =
   if (pop vm) = 0l then swap vm; 
   drop vm
 
-let bool_binary_op vm op = binary_op vm (fun l r -> op l r |> Data.bool_to_i32)
+let comparison_op vm op = binary_op vm (fun l r -> op l r |> Data.bool_to_i32)
 
-let gt vm = bool_binary_op vm ( > )
-let lt vm = bool_binary_op vm ( < )
-let eq vm = bool_binary_op vm ( = )
+let gt vm = comparison_op vm ( > )
+let lt vm = comparison_op vm ( < )
+let eq vm = comparison_op vm ( = )
 
 (*
  * Dynamic Array
